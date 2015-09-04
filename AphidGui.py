@@ -309,13 +309,17 @@ class AphidGUI(Frame):
         previous.grid(row=9, column=2, sticky= "we")
         previous.bind("<1>", self.change_time_backward)
         draw = Button(self,text="Draw")
-        #draw.grid(row=9, column = 4, sticky= "we")
+        draw.grid(row=9, column = 4, sticky= "we")
         draw.bind("<1>", self.draw_circles)
         self.widget_dict["draw"] = draw
         testprint = Button(self, text="testprint")
-        testprint.grid(row=9, column=4, sticky= "we")
+        testprint.grid(row=9, column=5, sticky= "we")
         testprint.bind('<1>', self.print_value_event)
         self.widget_dict["testprint"] = testprint
+        toggle = Button(self,text="Draw")
+        toggle.grid(row=10, column = 4, sticky= "we")
+        toggle.bind("<1>", self.toggle_disease)
+        self.widget_dict["draw"] = toggle
         self.pack()
         
                    
