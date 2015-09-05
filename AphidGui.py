@@ -12,6 +12,9 @@ from ttk import Frame, Style
 from ttk import Entry
 import string
 import tkFileDialog
+from math import sqrt
+import colorsys
+from __builtin__ import True
 
 class AphidGUI(Frame):
     '''
@@ -27,7 +30,7 @@ class AphidGUI(Frame):
     Rep = 0
     Flat = ''
     Time = 0
-    ms = 0
+    diseaseToggled = False
     
     def __init__(self, parent):
         Frame.__init__(self, parent)   
@@ -119,7 +122,7 @@ class AphidGUI(Frame):
         '''
         self.csvFile = self.getfile()
         
-    def set_dataList(self,event):
+    def set_dataList(self,event=None):
         '''
         Sets the data list from the csv file. Also sets the
         "Rep", "Flat", and "Time" option lists, such that
@@ -134,21 +137,21 @@ class AphidGUI(Frame):
         rep = apply(OptionMenu, (self,repVar) + repOptionList)
         repVar.set(repOptionList[0])
         rep.grid(row = 10, column=1, sticky= "we")
-        self.widget_dict["rep"] = repVar
+        self.widget_dict["OptionMenu:rep"] = repVar
         
         flatOptionList = self.get_option_list(1)
         flatVar = StringVar()
         flat = apply(OptionMenu, (self,flatVar) + flatOptionList)
         flatVar.set(flatOptionList[0])
         flat.grid(row=10,column=2, sticky= "we")
-        self.widget_dict["flat"] = flatVar
+        self.widget_dict["OptionMenu:flat"] = flatVar
         
         timeOptionList = ("Hour",1,3,6,24)
         timeVar = StringVar()
         time = apply(OptionMenu, (self,timeVar) + timeOptionList)
         timeVar.set(timeOptionList[0])
         time.grid(row=10,column=3, sticky= "we")
-        self.widget_dict["time"] = timeVar
+        self.widget_dict["OptionMenu:time"] = timeVar
         
         self.pack()
         
@@ -166,7 +169,7 @@ class AphidGUI(Frame):
         '''
         print returnStatementToPrint
     
-    def print_value_event(self, event):
+    def print_value_event(self, event=None):
         '''
         Used for testing. When set to a button, the button
         can be pressed, and then a command typed in the
@@ -175,26 +178,26 @@ class AphidGUI(Frame):
         returnStatementToPrint = raw_input("Statement to print:")
         exec returnStatementToPrint
         
-    def change_time_forward(self,event):
+    def change_time_forward(self,event=None):
         '''
         Sets the time being displayed on the gui forward
         to the next time slot.
         '''
         times = ['1','3','6','24']
-        time = self.widget_dict["time"]
+        time = self.widget_dict["OptionMenu:time"]
         index = times.index(time.get())
         if index < 3:
             index+=1
         time.set(int(times[index]))
         self.draw_circles()
         
-    def change_time_backward(self,event):
+    def change_time_backward(self,event=None):
         '''
         Set the time being displayed on the gui backward
         to the previous time slot.
         '''
         times = ['1','3','6','24']
-        time = self.widget_dict["time"]
+        time = self.widget_dict["OptionMenu:time"]
         index = times.index(time.get())
         if index > 0:
             index-=1
@@ -205,9 +208,9 @@ class AphidGUI(Frame):
         '''
         Sets the Rep, Flat, and Time attributes for the gui
         '''
-        self.Rep = self.widget_dict["rep"].get()
-        self.Flat = self.widget_dict["flat"].get()
-        self.Time = int(self.widget_dict["time"].get())
+        self.Rep = self.widget_dict["OptionMenu:rep"].get()
+        self.Flat = self.widget_dict["OptionMenu:flat"].get()
+        self.Time = int(self.widget_dict["OptionMenu:time"].get())
         flatList = self.sort_data_by_RepAndFlat(self.dataList, self.Rep, self.Flat)
         self.FlatList = flatList
     
@@ -222,7 +225,7 @@ class AphidGUI(Frame):
                 list += (i[column],)
         return list
     
-    def createOval(self, size, canvas):
+    def createOval(self, size, canvas, location, fillColor = "green"):
         '''
         creates a circle, sized relative to the number of
         aphids on that spot at that time
@@ -230,31 +233,65 @@ class AphidGUI(Frame):
         if size != 0:
             ul = 35 - size*32
             br = 30 + size*32
-            canvas.create_oval((ul,ul),(br,br),fill = "green")
+            self.widget_dict["Circle:%s" % location] = canvas.create_oval((ul,ul),(br,br),fill = fillColor)
+            
     
     def draw_circles(self, event=None):
         '''
         Draws all the circles for the Flat.
         '''
         self.clear_canvas()
+        flat = self.Flat
         self.set_current_flat()
+        if ((self.Flat != flat) and (self.diseaseToggled == True)):
+            self.toggle_disease()
         time = int(self.Time)
         timeCol = {1:9, 3:10, 6:11,24:12}
-        maxSize = float(max(self.FlatList, key = lambda x:int(x[timeCol[time]]))[timeCol[time]])
-        self.ms = maxSize
+        maxInCols = []
+        for i in timeCol.values():
+            maxInCols.append(float(max(self.FlatList, key = lambda x:int(x[i]))[i]))
+        maxSize = max(maxInCols)
         for i in self.FlatList:
             location = str(i[3]) + str(i[2])
-            widget = self.widget_dict[location]
-            size = float(i[timeCol[time]])/maxSize
-            self.createOval(size,widget)
+            widget = self.widget_dict["Canvas:" + location]
+            size = sqrt(float(i[timeCol[time]]))/sqrt(maxSize)
+            self.createOval(size,widget, location)
                         
+    def disease_bg(self):
+        '''
+        toggles whether the grids show colored or not, 
+        dependent on whether the plant was diseased.
+        '''
+        if self.diseaseToggled == False:
+            for i in self.FlatList:
+                diseased = False
+                if int(i[13]) == 1:
+                    diseased = True
+                if diseased:
+                    location = str(i[3]) + str(i[2])
+                    widget = self.widget_dict["Canvas:" + location]
+                    widget.config(bg = "purple")
+        elif self.diseaseToggled == True:
+            for i in self.FlatList:
+                location = str(i[3]) + str(i[2])
+                widget = self.widget_dict["Canvas:" + location]
+                widget.config(bg = "SystemButtonFace")
+    
+    def toggle_disease(self,event=None):
+        self.disease_bg()
+        if self.diseaseToggled == True:
+            self.diseaseToggled = False
+        else:
+            self.diseaseToggled = True 
+        
+    
     def clear_canvas(self):
         '''
         Erases all the circles from each canva on the flat.
         '''
         for i in self.FlatList:
             location = str(i[3]) + str(i[2])
-            widget = self.widget_dict[location]
+            widget = self.widget_dict["Canvas:" + location]
             widget.delete("all")
                         
     def initUI(self):
@@ -277,7 +314,7 @@ class AphidGUI(Frame):
                 label = str(i)
                 widget = Label(self, text=label)
                 widget.grid(row=0, column=i)
-                self.widget_dict["0,%s" % label] = widget
+                self.widget_dict["colLabel:0,%s" % label] = widget
         
         for i in range(10):
             self.rowconfigure(i, pad=5)
@@ -285,7 +322,7 @@ class AphidGUI(Frame):
                 label = AtoH[i]
                 widget = Label(self, text=label)
                 widget.grid(row=i, column=0)
-                self.widget_dict["%s,0" % label] = widget
+                self.widget_dict["rowLabel:%s,0" % i] = widget
         self.rowconfigure(9, pad = 25)
         
         entry = Entry(self)
@@ -294,32 +331,32 @@ class AphidGUI(Frame):
             for c in range(1, 5):
                 lbl = Canvas(self, width=64,height=64)
                 lbl.grid(row=r, column=c)
-                self.widget_dict["%s%s" % (AtoH[r], c)] = lbl         
+                self.widget_dict["Canvas:%s%s" % (AtoH[r], c)] = lbl         
         
         
         newFile = Button(self, text="New File")
         newFile.grid(row=9, column=1, sticky= "we")
         newFile.bind("<Button-1>", self.set_dataList)
-        self.widget_dict["newFile"] = newFile
+        self.widget_dict["Button:newFile"] = newFile
         next = Button(self, text="Next")
         next.grid(row=9, column=3, sticky= "we")
         next.bind("<1>", self.change_time_forward)
-        self.widget_dict["next"] = next
+        self.widget_dict["Button:next"] = next
         previous = Button(self, text="Previous")
         previous.grid(row=9, column=2, sticky= "we")
         previous.bind("<1>", self.change_time_backward)
         draw = Button(self,text="Draw")
         draw.grid(row=9, column = 4, sticky= "we")
         draw.bind("<1>", self.draw_circles)
-        self.widget_dict["draw"] = draw
+        self.widget_dict["Button:draw"] = draw
         testprint = Button(self, text="testprint")
         testprint.grid(row=9, column=5, sticky= "we")
         testprint.bind('<1>', self.print_value_event)
-        self.widget_dict["testprint"] = testprint
-        toggle = Button(self,text="Draw")
+        self.widget_dict["Button:testprint"] = testprint
+        toggle = Button(self,text="Toggle Disease")
         toggle.grid(row=10, column = 4, sticky= "we")
         toggle.bind("<1>", self.toggle_disease)
-        self.widget_dict["draw"] = toggle
+        self.widget_dict["Button:toggle"] = toggle
         self.pack()
         
                    
