@@ -11,6 +11,7 @@ from Tkinter import Tk, W, E, Label, Button, Canvas, OptionMenu, StringVar
 from ttk import Frame, Style
 from ttk import Entry
 import string
+
 import tkFileDialog
 from math import sqrt
 import colorsys
@@ -253,7 +254,9 @@ class AphidGUI(Frame):
         maxSize = max(maxInCols)
         for i in self.FlatList:
             location = str(i[3]) + str(i[2])
+            plantType = str(i[8])
             widget = self.widget_dict["Canvas:" + location]
+            widget.create_text((3,2), anchor = "nw", text = plantType, font = ("Ariel", 11))
             size = sqrt(float(i[timeCol[time]]))/sqrt(maxSize)
             self.createOval(size,widget, location)
                         
@@ -329,12 +332,12 @@ class AphidGUI(Frame):
         
         for r in range(1, 9):
             for c in range(1, 5):
-                lbl = Canvas(self, width=64,height=64)
+                lbl = Canvas(self, width=64,height=64, bg = "SystemButtonFace")
                 lbl.grid(row=r, column=c)
                 self.widget_dict["Canvas:%s%s" % (AtoH[r], c)] = lbl         
         
         
-        newFile = Button(self, text="New File")
+        newFile = Button(self, text="New File", bg = "SystemButtonFace")
         newFile.grid(row=9, column=1, sticky= "we")
         newFile.bind("<Button-1>", self.set_dataList)
         self.widget_dict["Button:newFile"] = newFile
@@ -354,7 +357,7 @@ class AphidGUI(Frame):
         testprint.bind('<1>', self.print_value_event)
         self.widget_dict["Button:testprint"] = testprint
         toggle = Button(self,text="Toggle Disease")
-        toggle.grid(row=10, column = 4, sticky= "we")
+#         toggle.grid(row=10, column = 4, sticky= "we")
         toggle.bind("<1>", self.toggle_disease)
         self.widget_dict["Button:toggle"] = toggle
         self.pack()
@@ -363,6 +366,7 @@ class AphidGUI(Frame):
 
 def main():  
     root = Tk()
+    root.resizable(0,0)
     app = AphidGUI(root)
     root.mainloop() 
  
