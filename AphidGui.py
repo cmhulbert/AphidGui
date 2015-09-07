@@ -273,7 +273,7 @@ class AphidGUI(Frame):
                 if diseased:
                     location = str(i[3]) + str(i[2])
                     widget = self.widget_dict["Canvas:" + location]
-                    widget.config(bg = "purple")
+                    widget.config(bg = "pink")
         elif self.diseaseToggled == True:
             for i in self.FlatList:
                 location = str(i[3]) + str(i[2])
@@ -353,11 +353,11 @@ class AphidGUI(Frame):
         draw.bind("<1>", self.draw_circles)
         self.widget_dict["Button:draw"] = draw
         testprint = Button(self, text="testprint")
-        testprint.grid(row=9, column=5, sticky= "we")
+#         testprint.grid(row=9, column=5, sticky= "we")
         testprint.bind('<1>', self.print_value_event)
         self.widget_dict["Button:testprint"] = testprint
         toggle = Button(self,text="Toggle Disease")
-#         toggle.grid(row=10, column = 4, sticky= "we")
+        toggle.grid(row=10, column = 4, sticky= "we")
         toggle.bind("<1>", self.toggle_disease)
         self.widget_dict["Button:toggle"] = toggle
         self.pack()
