@@ -232,8 +232,8 @@ class AphidGUI(Frame):
         aphids on that spot at that time
         '''
         if size != 0:
-            ul = 35 - size*32
-            br = 30 + size*32
+            ul = 38 - size*32
+            br = 33 + size*32
             self.widget_dict["Circle:%s" % location] = canvas.create_oval((ul,ul),(br,br),fill = fillColor)
             
     def draw_circles(self, event=None):
@@ -259,7 +259,7 @@ class AphidGUI(Frame):
             size = sqrt(float(i[timeCol[time]]))/sqrt(maxSize)
             self.createOval(size,widget, location)
             if int(i[timeCol[time]]) != 0:
-                widget.create_text((32,32), anchor = "center", text = str(int(i[timeCol[time]])), font = ("Ariel", 9))
+                widget.create_text((35,35), anchor = "center", text = str(int(i[timeCol[time]])), font = ("Ariel", 9))
                         
     def disease_bg(self):
         '''
